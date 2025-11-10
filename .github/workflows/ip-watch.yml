@@ -52,15 +52,16 @@ jobs:
       # Commit logs/state even on error so you can see what happened
       - name: Commit & push if there are changes
         run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add state ip_changes.log || true
-            git commit -m "ip-watch: update $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            git push
-          else
+            if [[ -n "$(git status --porcelain)" ]]; then
+                git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add -A
+              git commit -m "ip-watch: update $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+              git push
+            else
             echo "No changes to commit"
-          fi
+            fi
+
 
       # Mark the job failed at the very end if the script failed
       - name: Fail if watcher failed
