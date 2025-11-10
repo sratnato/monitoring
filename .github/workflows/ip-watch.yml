@@ -1,0 +1,49 @@
+name: Render IP Watch
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes (UTC)
+  workflow_dispatch:
+    inputs:
+      hosts:
+        description: "Space-separated hostnames"
+        required: true
+        default: "your-app.onrender.com app.yourdomain.com"
+      state_dir:
+        description: "State dir"
+        required: true
+        default: "state"
+      log_file:
+        description: "Log file path"
+        required: true
+        default: "ip_changes.log"
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run watcher
+        run: |
+          python3 ip_watch.py ${{ inputs.hosts }} \
+            --state-dir "${{ inputs.state_dir }}" \
+            --log-file "${{ inputs.log_file }}"
+      - name: Commit & push if there are changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "${{ inputs.state_dir }}" "${{ inputs.log_file }}" || true
+            git commit -m "ip-watch: update $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git push
+          else
+            echo "No changes to commit"
+          fi
