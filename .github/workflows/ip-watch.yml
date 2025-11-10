@@ -31,19 +31,40 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Run watcher
+
+      # Quick DNS check in runner logs
+      - name: DNS sanity check
         run: |
-          python3 ip_watch.py ${{ inputs.hosts }} \
-            --state-dir "${{ inputs.state_dir }}" \
-            --log-file "${{ inputs.log_file }}"
+          nslookup directions-proxy.onrender.com || true
+          getent hosts directions-proxy.onrender.com || true
+
+      # Run the watcher but don't fail the job immediately;
+      # we still want to commit the error log if DNS fails.
+      - name: Run watcher
+        id: runwatch
+        continue-on-error: true
+        run: |
+          python3 ip_watch.py directions-proxy.onrender.com \
+            --state-dir state \
+            --log-file ip_changes.log
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      # Commit logs/state even on error so you can see what happened
       - name: Commit & push if there are changes
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add "${{ inputs.state_dir }}" "${{ inputs.log_file }}" || true
+            git add state ip_changes.log || true
             git commit -m "ip-watch: update $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             git push
           else
             echo "No changes to commit"
           fi
+
+      # Mark the job failed at the very end if the script failed
+      - name: Fail if watcher failed
+        if: steps.runwatch.outputs.exit_code != '0'
+        run: |
+          echo "Watcher exited with code: ${{ steps.runwatch.outputs.exit_code }}"
+          exit 1
