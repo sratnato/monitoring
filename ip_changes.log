@@ -857,3 +857,4 @@
 {"ts": "2025-11-21T19:43:58Z", "level": "error", "event": "dns_lookup_failed", "host": "directions-proxy.onrender.com", "error": "getaddrinfo() got an unexpected keyword argument 'timeout'"}
 {"ts": "2025-11-21T19:52:33Z", "level": "error", "event": "dns_lookup_failed", "host": "directions-proxy.onrender.com", "error": "getaddrinfo() got an unexpected keyword argument 'timeout'"}
 {"ts": "2025-11-21T20:14:29Z", "level": "error", "event": "dns_lookup_failed", "host": "directions-proxy.onrender.com", "error": "getaddrinfo() got an unexpected keyword argument 'timeout'"}
+{"ts": "2025-11-21T20:34:26Z", "level": "error", "event": "dns_lookup_failed", "host": "directions-proxy.onrender.com", "error": "getaddrinfo() got an unexpected keyword argument 'timeout'"}
